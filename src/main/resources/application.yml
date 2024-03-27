@@ -2,6 +2,10 @@ spring:
   application:
     name: api-gateway-okta
   config:
-    import: 'optional:configserver:${config-server}'
+    import: 'optional:configserver:${config-server:http://192.168.1.15:9090/}'
   profiles:
     active: dev
+  cloud:
+    config:
+      uri: '${config-server:http://192.168.1.15:9090/}'
+      name: app-server,api-gateway-okta
