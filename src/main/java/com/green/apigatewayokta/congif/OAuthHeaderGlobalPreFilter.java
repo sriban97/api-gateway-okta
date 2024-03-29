@@ -18,20 +18,29 @@ import java.nio.file.AccessDeniedException;
 public class OAuthHeaderGlobalPreFilter implements GlobalFilter {
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+        var LOG_NAME = "filter";
         return ReactiveSecurityContextHolder.getContext()
                 .filter(c -> c.getAuthentication() != null)
                 .flatMap(c -> {
+                    log.info("{} Begin...", LOG_NAME);
+
                     Authentication authentication = c.getAuthentication();
                     String sso = authentication.getName();
+                    log.info("{} sso {}", LOG_NAME, sso);
+
                     if (ObjectUtils.isEmpty(sso)) {
+                        var error = "Invalid token. User is not present in token.";
+                        log.error("{} error {}", LOG_NAME, error);
                         return Mono.error(
-                                new AccessDeniedException("Invalid token. User is not present in token.")
+                                new AccessDeniedException(error)
                         );
                     }
                     ServerHttpRequest request = exchange.getRequest().mutate()
                             .header("sso-id", sso).build();
+                    log.info("{} End.", LOG_NAME);
                     return chain.filter(exchange.mutate().request(request).build());
                 })
                 .switchIfEmpty(chain.filter(exchange));
+
     }
 }
