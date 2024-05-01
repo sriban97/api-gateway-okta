@@ -6,6 +6,7 @@ import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.server.ServerWebExchange;
@@ -19,13 +20,17 @@ public class OAuthHeaderGlobalPreFilter implements GlobalFilter {
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         var LOG_NAME = "filter";
+
+
         return ReactiveSecurityContextHolder.getContext()
                 .filter(c -> c.getAuthentication() != null)
                 .flatMap(c -> {
                     log.info("{} Begin...", LOG_NAME);
 
                     Authentication authentication = c.getAuthentication();
+                    Jwt user =(Jwt) authentication.getPrincipal();
                     String sso = authentication.getName();
+                    System.out.println(user);
                     log.info("{} sso {}", LOG_NAME, sso);
 
                     if (ObjectUtils.isEmpty(sso)) {
